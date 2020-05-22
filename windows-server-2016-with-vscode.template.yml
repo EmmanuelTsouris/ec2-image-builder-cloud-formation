@@ -1,0 +1,113 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Resources:
+  WindowServerWithVisualStudioCode:
+    Type: AWS::ImageBuilder::Image
+    Properties:
+      ImageRecipeArn:
+        Ref: ImageRecipe
+      InfrastructureConfigurationArn:
+        Ref: ImageInfrastructureConfiguration
+
+  ImageInfrastructureConfiguration:
+    Type: AWS::ImageBuilder::InfrastructureConfiguration
+    Properties:
+      Name: Image-Infrastructure-Configuration
+      InstanceProfileName:
+        Ref: InstanceProfile
+
+  ImageRecipe:
+    Type: AWS::ImageBuilder::ImageRecipe
+    Properties:
+      Name: Image-Recipe
+      Version: 1.0.0
+      ParentImage:
+        Fn::Sub: arn:${AWS::Partition}:imagebuilder:${AWS::Region}:aws:image/windows-server-2016-english-full-base-x86/x.x.x
+      Components:
+        - ComponentArn:
+            Ref: VisualStudioCodeComponent
+
+  VisualStudioCodeComponent:
+    Type: AWS::ImageBuilder::Component
+    Properties:
+      Name: VisualStudioCode
+      Version: 0.0.1
+      Description: Install Visual Studio Code
+      ChangeDescription: First version
+      Platform: Windows
+      Data: |
+        name: InstallVSCode
+        description: Installs Visual Studio Code
+        schemaVersion: 1.0
+
+        phases:
+          - name: build
+            steps:
+              - name: VSCodeInstall
+                action: ExecutePowerShell
+                inputs:
+                  commands:
+                    - |
+                      # This id the download url for the 64bit System Setup,
+                      # you can find the download link on the vscode website.
+                      $downloadUrl = "https://go.microsoft.com/fwlink/?Linkid=852157"
+
+                      # Name and path for the downloaded file
+                      $installerFile = "vscode-install.exe"
+                      $installerDownloadPath = (Join-Path $env:TEMP $installerFile)
+
+                      # Install Options
+                      # Include the context menu, file association, and add to path options (and don't run code after install:
+                      $installerArguments = '/verysilent /mergetasks=!runcode,addcontextmenufiles,addcontextmenufolders,associatewithfiles,addtopath'
+
+                      Write-Host "Downloading $downloadUrl to $installerFile."
+                      Invoke-Webrequest $downloadUrl -UseBasicParsing -OutFile $installerDownloadPath
+
+                      Write-Host "Installing $installerDownloadPath."
+                      Start-Process $installerDownloadPath -ArgumentList $installerArguments -Wait
+
+                      Write-Host "Cleanup the downloaded file."
+                      Remove-Item $installerDownloadPath -Force
+
+          - name: validate
+            steps:
+              - name: VSCodeValidate
+                action: ExecutePowerShell
+                inputs:
+                  commands:
+                    - |
+                      if (code --version) { return $true }
+
+          - name: test
+            steps:
+              - name: VSCodeTest
+                action: ExecutePowerShell
+                inputs:
+                  commands:
+                    - |
+                      if (code --version) { return $true }
+
+  InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: /executionServiceEC2Role/
+      Roles:
+      - Ref: InstanceRole
+  InstanceRole:
+    Type: AWS::IAM::Role
+    Metadata:
+      Comment: Role to be used by instance during image build.
+    Properties:
+      ManagedPolicyArns:
+        - Fn::Sub: arn:${AWS::Partition}:iam::aws:policy/AmazonSSMManagedInstanceCore
+        - Fn::Sub: arn:${AWS::Partition}:iam::aws:policy/EC2InstanceProfileForImageBuilder
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action:
+          - sts:AssumeRole
+          Effect: Allow
+          Principal:
+            Service:
+                - ec2.amazonaws.com
+        Version: '2012-10-17'
+      Path: /executionServiceEC2Role/
