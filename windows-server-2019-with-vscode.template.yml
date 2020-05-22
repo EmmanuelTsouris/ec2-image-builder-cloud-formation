@@ -1,7 +1,7 @@
 AWSTemplateFormatVersion: 2010-09-09
 
 Resources:
-  WindowServerWithVisualStudioCode:
+  WindowServer2019WithVisualStudioCode:
     Type: AWS::ImageBuilder::Image
     Properties:
       ImageRecipeArn:
