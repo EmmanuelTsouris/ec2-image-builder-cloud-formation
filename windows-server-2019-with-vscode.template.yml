@@ -22,7 +22,7 @@ Resources:
       Name: Image-Recipe
       Version: 1.0.0
       ParentImage:
-        Fn::Sub: arn:${AWS::Partition}:imagebuilder:${AWS::Region}:aws:image/windows-server-2016-english-full-base-x86/x.x.x
+        Fn::Sub: arn:${AWS::Partition}:imagebuilder:${AWS::Region}:aws:image/windows-server-2019-english-full-base-x86/x.x.x
       Components:
         - ComponentArn:
             Ref: VisualStudioCodeComponent
