@@ -5,7 +5,7 @@ Resources:
     Type: AWS::ImageBuilder::Image
     Properties:
       ImageRecipeArn:
-        Ref: ImageRecipe
+        Ref: WindowsServer2019ImageRecipe
       InfrastructureConfigurationArn:
         Ref: ImageInfrastructureConfiguration
 
@@ -16,11 +16,11 @@ Resources:
       InstanceProfileName:
         Ref: InstanceProfile
 
-  ImageRecipe:
+  WindowsServer2019ImageRecipe:
     Type: AWS::ImageBuilder::ImageRecipe
     Properties:
-      Name: Image-Recipe
-      Version: 1.0.0
+      Name: Windows_Server-2016-VisualStudioCode
+      Version: 0.0.1
       ParentImage:
         Fn::Sub: arn:${AWS::Partition}:imagebuilder:${AWS::Region}:aws:image/windows-server-2019-english-full-base-x86/x.x.x
       Components:
