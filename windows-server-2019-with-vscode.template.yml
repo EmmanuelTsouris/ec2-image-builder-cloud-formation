@@ -7,12 +7,12 @@ Resources:
       ImageRecipeArn:
         Ref: WindowsServer2019ImageRecipe
       InfrastructureConfigurationArn:
-        Ref: ImageInfrastructureConfiguration
+        Ref: WindowsServer2019ImageInfrastructureConfiguration
 
-  ImageInfrastructureConfiguration:
+  WindowsServer2019ImageInfrastructureConfiguration:
     Type: AWS::ImageBuilder::InfrastructureConfiguration
     Properties:
-      Name: Image-Infrastructure-Configuration
+      Name: WindowsServer-2019-VSCode-Image-Infrastructure-Configuration
       InstanceProfileName:
         Ref: InstanceProfile
 
@@ -48,6 +48,9 @@ Resources:
                 inputs:
                   commands:
                     - |
+                      # Needed for Invoke-RestMethod to use TLS 1.2
+                      [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+
                       # This id the download url for the 64bit System Setup,
                       # you can find the download link on the vscode website.
                       $downloadUrl = "https://go.microsoft.com/fwlink/?Linkid=852157"
